@@ -249,6 +249,16 @@ const WorkoutSelector = () => {
             </Button>
           </div>
           <div className="space-y-4">
+            {selectedExercise?.gifUrl && (
+              <Image 
+                src={selectedExercise.gifUrl}
+                alt={`${selectedExercise.name} demonstration`}
+                width={400}
+                height={300}
+                className="rounded-lg w-full"
+                unoptimized
+              />
+            )}
             <div>
               <h4 className="font-semibold text-card-foreground mb-2">Form Tips:</h4>
               <ul className="space-y-2">
@@ -260,16 +270,6 @@ const WorkoutSelector = () => {
                 ))}
               </ul>
             </div>
-            {selectedExercise?.gifUrl && (
-              <Image 
-                src={selectedExercise.gifUrl}
-                alt={`${selectedExercise.name} demonstration`}
-                width={400}
-                height={300}
-                className="rounded-lg w-full"
-                unoptimized
-              />
-            )}
           </div>
         </Card>
       )}

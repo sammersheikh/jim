@@ -55,11 +55,13 @@ const WorkoutTimer = () => {
   const [mainTime, setMainTime] = useState(0);
   const [restTime, setRestTime] = useState(0);
   const [exerciseTime, setExerciseTime] = useState(0);
+  const [currentSet, setCurrentSet] = useState(1);
   const [isMainRunning, setIsMainRunning] = useState(false);
   const [isRestRunning, setIsRestRunning] = useState(false);
   const [isExerciseRunning, setIsExerciseRunning] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasIncrementedRef = useRef(false);
 
   useEffect(() => {
     // Only create audio element if running in browser
@@ -85,11 +87,14 @@ const WorkoutTimer = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRestRunning && restTime > 0) {
+      hasIncrementedRef.current = false;
       interval = setInterval(() => {
         setRestTime(prev => {
-          if (prev <= 1) {
+          if (prev <= 1 && !hasIncrementedRef.current) {
             setIsRestRunning(false);
             playSound();
+            hasIncrementedRef.current = true;
+            setCurrentSet(curr => curr + 1);
             return 0;
           }
           return prev - 1;
@@ -102,11 +107,14 @@ const WorkoutTimer = () => {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isExerciseRunning && exerciseTime > 0) {
+      hasIncrementedRef.current = false;
       interval = setInterval(() => {
         setExerciseTime(prev => {
-          if (prev <= 1) {
+          if (prev <= 1 && !hasIncrementedRef.current) {
             setIsExerciseRunning(false);
             playSound();
+            hasIncrementedRef.current = true;
+            setCurrentSet(1);
             return 0;
           }
           return prev - 1;
@@ -127,6 +135,8 @@ const WorkoutTimer = () => {
     setIsRestRunning(false);
     setExerciseTime(0);
     setIsExerciseRunning(false);
+    setCurrentSet(1);
+    hasIncrementedRef.current = false;
   };
 
   const handleSetEnded = () => {
@@ -148,7 +158,7 @@ const WorkoutTimer = () => {
   };
 
   return (
-    <Card className="w-full max-w-md p-6 bg-card text-card-foreground">
+    <Card className="w-full max-w-md p-4 md:p-6 bg-card text-card-foreground">
       <div className="flex justify-between items-start mb-4">
         <h2 className="text-2xl font-bold">Workout Timer</h2>
         <Button
@@ -163,7 +173,7 @@ const WorkoutTimer = () => {
 
       <div className="space-y-4 mb-4">
         <div className="text-center">
-          <div className="text-sm font-medium mb-1">Set 1</div>
+          <div className="text-sm font-medium mb-1">Set {currentSet}</div>
           <div className="text-6xl md:text-7xl font-mono">
             {formatTime(mainTime)}
           </div>
