@@ -5,243 +5,191 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Timer, Pause, Play, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
 
+interface TimerDisplayProps {
+  title: string;
+  time: number;
+  isActive: boolean;
+  type?: 'rest' | 'exercise';
+  onDismiss?: () => void;
+}
+
+const formatTime = (time: number): string => {
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const getTimerStyles = (time: number, isActive: boolean, type?: 'rest' | 'exercise'): string => {
+  const baseStyles = "text-6xl font-mono";
+  if (type === 'rest') return `${baseStyles} text-blue-500`;
+  if (type === 'exercise') return `${baseStyles} text-purple-500`;
+  return baseStyles;
+};
+
+const TimerDisplay: React.FC<TimerDisplayProps> = ({ 
+  title, 
+  time, 
+  isActive, 
+  type, 
+  onDismiss 
+}) => (
+  <div className="relative text-center bg-card p-4 rounded-lg shadow-sm">
+    {onDismiss && (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onDismiss}
+        className="absolute top-1 right-1 h-8 w-8 hover:bg-accent transition-colors"
+      >
+        <X size={16} />
+      </Button>
+    )}
+    <h3 className="text-lg font-semibold mb-2 text-card-foreground">{title}</h3>
+    <div className={getTimerStyles(time, isActive, type)}>
+      {formatTime(time)}
+    </div>
+  </div>
+);
+
 const WorkoutTimer = () => {
   const [mainTime, setMainTime] = useState(0);
-  const [restTime, setRestTime] = useState(45);
-  const [exerciseTransitionTime, setExerciseTransitionTime] = useState(90);
+  const [restTime, setRestTime] = useState(0);
+  const [exerciseTime, setExerciseTime] = useState(0);
   const [isMainRunning, setIsMainRunning] = useState(false);
   const [isRestRunning, setIsRestRunning] = useState(false);
-  const [isTransitionRunning, setIsTransitionRunning] = useState(false);
-  const [restActive, setRestActive] = useState(false);
-  const [transitionActive, setTransitionActive] = useState(false);
+  const [isExerciseRunning, setIsExerciseRunning] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
-  const [isJumping, setIsJumping] = useState(false);
-  const [jumpCount, setJumpCount] = useState(0);
-  const [setCount, setSetCount] = useState(0);
-  
-  const audioRef = useRef(new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hwFwpGn+DyvmwhBTGH0fPTgjMGHm7A7+OZSA0PVq3n77NqGgY+ltryxnMpBSl+zPLaizsIGGS57OihUg8MUqji8LVnGwU6k9jzyn4uBSZ5yfDckEILFF+16+uocBcKRp/g8r5sIQUxh9Hz04IzBh5uwO/jmUgND1at5++zah8T1pePxdCTt0tZw3lN6/7hmmP8qnL7wY4kXrS/9+ihaRgJQ5rf88B1KAQsfcvx3Y89CRVjtuvqpVUOC1Gm4/C2aRwFOpLX88t+LgUleMnw3ZFDCxRftevqqHAXCkaf4PK+bCEFMYfR89OCMwYebsDv45lIDQ9Wref1ymIndK7Can+/uyI8p5DIwpR3G5O7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvspWYQB0Cd4PK/cCMFMYfR89OCMwYebsDv45lIDQ9Wref0y2IgcKu9Z32+vCU9qZLIwpR3G5O7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvsp2oUDEml4e+6bB8GM4nS89GEMwYebsDv45lIDQ9Wref0y2IgcKu9Zn2+uiQ6pJHGwZN1G5S7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvsp2oUDEml4e+6bB8GM4nS89GEMwYebsDv45lIDQ9Wref0y2IgcKu9Zn2+uiQ6pJHGwZN1G5S7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvsp2oUDEml4e+6bB8GM4nS89GEMwYebsDv45lIDQ9Wref0y2IgcKu9Zn2+uiQ6pJHGwZN1G5S7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvsp2oUDEml4e+6bB8GM4nS89GEMwYebsDv45lIDQ9Wref0y2IgcKu9Zn2+uiQ6pJHGwZN1G5S7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvsp2oUDEml4e+6bB8GM4nS89GEMwYebsDv45lIDQ9Wref0y2IgcKu9Zn2+uiQ6pJHGwZN1G5S7y9dHfIHa/u6gXBYGOZPY88p9LQUleMnw3ZBCChRftuvsp2oUDEml4e+6bB8GM4nS89GEMwYebsDv45lIDQ9Wref0y2Ig')); 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    let interval;
+    // Only create audio element if running in browser
+    if (typeof window !== 'undefined') {
+      const audio = new Audio();
+      audio.src = '/timer-end.mp3';
+      // Preload the audio file
+      audio.load();
+      audioRef.current = audio;
+    }
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
     if (isMainRunning) {
       interval = setInterval(() => {
-        setMainTime(prevTime => prevTime + 1);
+        setMainTime(prev => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
   }, [isMainRunning]);
 
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout;
     if (isRestRunning && restTime > 0) {
       interval = setInterval(() => {
-        setRestTime(prevTime => {
-          if (prevTime <= 1) {
+        setRestTime(prev => {
+          if (prev <= 1) {
             setIsRestRunning(false);
-            if (isSoundEnabled) {
-              audioRef.current.play().catch(e => console.log('Audio play failed:', e));
-            }
-            setIsJumping(true);
-            setJumpCount(0);
+            playSound();
             return 0;
           }
-          return prevTime - 1;
+          return prev - 1;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRestRunning, isSoundEnabled]);
+  }, [isRestRunning, restTime]);
 
   useEffect(() => {
-    let interval;
-    if (isTransitionRunning && exerciseTransitionTime > 0) {
+    let interval: NodeJS.Timeout;
+    if (isExerciseRunning && exerciseTime > 0) {
       interval = setInterval(() => {
-        setExerciseTransitionTime(prevTime => {
-          if (prevTime <= 1) {
-            setIsTransitionRunning(false);
-            if (isSoundEnabled) {
-              audioRef.current.play().catch(e => console.log('Audio play failed:', e));
-            }
-            setIsJumping(true);
-            setJumpCount(0);
+        setExerciseTime(prev => {
+          if (prev <= 1) {
+            setIsExerciseRunning(false);
+            playSound();
             return 0;
           }
-          return prevTime - 1;
+          return prev - 1;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isTransitionRunning, isSoundEnabled]);
-
-  useEffect(() => {
-    if (isJumping && jumpCount < 3) {
-      const timeout = setTimeout(() => {
-        setJumpCount(prev => prev + 1);
-      }, 500);
-      return () => clearTimeout(timeout);
-    } else if (jumpCount >= 3) {
-      setIsJumping(false);
-      setJumpCount(0);
-      if (restTime === 0) {
-        handleDismissRest();
-        setSetCount(prev => prev + 1);
-      }
-      if (exerciseTransitionTime === 0) {
-        handleDismissTransition();
-        setSetCount(1);
-      }
-    }
-  }, [isJumping, jumpCount, restTime, exerciseTransitionTime]);
-
-  const formatTime = (timeInSeconds) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
+  }, [isExerciseRunning, exerciseTime]);
 
   const handleStartStop = () => {
-    if (!isMainRunning && mainTime === 0) {
-      setSetCount(1);
-    }
     setIsMainRunning(!isMainRunning);
-  };
-
-  const handleSetEnded = () => {
-    setRestActive(true);
-    setIsRestRunning(true);
-    setRestTime(45);
-  };
-
-  const handleExerciseComplete = () => {
-    setTransitionActive(true);
-    setIsTransitionRunning(true);
-    setExerciseTransitionTime(90);
   };
 
   const handleReset = () => {
     setMainTime(0);
-    setRestTime(45);
-    setExerciseTransitionTime(90);
     setIsMainRunning(false);
+    setRestTime(0);
     setIsRestRunning(false);
-    setIsTransitionRunning(false);
-    setRestActive(false);
-    setTransitionActive(false);
-    setIsJumping(false);
-    setJumpCount(0);
-    setSetCount(0);
+    setExerciseTime(0);
+    setIsExerciseRunning(false);
   };
 
-  const handleDismissRest = () => {
-    setRestActive(false);
-    setIsRestRunning(false);
+  const handleSetEnded = () => {
     setRestTime(45);
+    setIsRestRunning(true);
   };
 
-  const handleDismissTransition = () => {
-    setTransitionActive(false);
-    setIsTransitionRunning(false);
-    setExerciseTransitionTime(90);
+  const handleExerciseComplete = () => {
+    setExerciseTime(85);
+    setIsExerciseRunning(true);
   };
 
-  const toggleSound = () => {
-    setIsSoundEnabled(!isSoundEnabled);
-  };
-
-  const getTimerStyles = (time, isActive, type) => {
-    const baseStyles = "font-bold font-mono mb-4 transition-all duration-200";
-    
-    if (time <= 5) {
-      return `${baseStyles} text-6xl text-red-600 transform ${
-        (jumpCount % 2 === 0) ? 'scale-125' : 'scale-100'
-      }`;
+  const playSound = () => {
+    if (isSoundEnabled && audioRef.current) {
+      audioRef.current.play().catch(error => {
+        console.log('Audio playback failed:', error);
+      });
     }
-    
-    const colors = {
-      rest: "text-blue-600",
-      transition: "text-purple-600"
-    };
-    
-    return `${baseStyles} text-5xl ${colors[type]}`;
   };
-
-  const TimerDisplay = ({ 
-    title, 
-    time, 
-    isActive, 
-    type, 
-    onDismiss 
-  }) => (
-    <div className="relative text-center bg-gray-50 p-4 rounded-lg shadow-sm">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onDismiss}
-        className="absolute top-1 right-1 h-8 w-8 hover:bg-gray-200 transition-colors"
-      >
-        <X size={16} />
-      </Button>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <div className={getTimerStyles(time, isActive, type)}>
-        {formatTime(time)}
-      </div>
-    </div>
-  );
 
   return (
-    <Card className="w-full p-4 bg-white shadow-xl mb-4">
-      <div>
-        {/* Header with Set Counter and Sound Button */}
-        <div className="flex justify-between items-center">
-          {setCount > 0 && (
-            <div className="text-sm font-semibold text-gray-600">
-              Set {setCount}
-            </div>
-          )}
-          <div className="flex-1"></div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSound}
-            className="h-8 w-8"
-          >
-            {isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </Button>
-        </div>
+    <Card className="w-full max-w-md p-6 bg-card text-card-foreground">
+      <div className="flex justify-between items-start mb-4">
+        <h2 className="text-2xl font-bold">Workout Timer</h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+          className="h-8 w-8"
+        >
+          {isSoundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        </Button>
+      </div>
 
-        {/* Title and Timer */}
-        <div className="text-center -mt-2">
-          <h2 className="text-lg font-semibold mb-2">Workout Timer</h2>
-          <div className="text-6xl font-bold font-mono">
+      <div className="space-y-4 mb-4">
+        <div className="text-center">
+          <div className="text-sm font-medium mb-1">Set 1</div>
+          <div className="text-6xl md:text-7xl font-mono">
             {formatTime(mainTime)}
           </div>
         </div>
-      </div>
 
-      {/* Secondary Timers */}
-      <div className="space-y-2 mt-2">
-        {restActive && (
+        {restTime > 0 && (
           <TimerDisplay
-            title="Set Rest"
+            title="Rest Timer"
             time={restTime}
-            isActive={restActive}
+            isActive={isRestRunning}
             type="rest"
-            onDismiss={handleDismissRest}
+            onDismiss={() => setRestTime(0)}
           />
         )}
 
-        {transitionActive && (
+        {exerciseTime > 0 && (
           <TimerDisplay
-            title="Exercise Transition"
-            time={exerciseTransitionTime}
-            isActive={transitionActive}
-            type="transition"
-            onDismiss={handleDismissTransition}
+            title="Exercise Timer"
+            time={exerciseTime}
+            isActive={isExerciseRunning}
+            type="exercise"
+            onDismiss={() => setExerciseTime(0)}
           />
         )}
       </div>
 
-      {/* Control Buttons */}
       <div className="grid grid-cols-2 gap-2 mt-4">
         <Button 
           className="h-12 text-base font-semibold"
